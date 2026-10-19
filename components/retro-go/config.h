@@ -1,5 +1,7 @@
 #if defined(RG_TARGET_BRUTZELBOY)
 #include "targets/brutzelboy/config.h"
+#if defined(RG_TARGET_WAVESHARE_WATCH)
+#include "targets/waveshare_watch/config.h"
 #elif defined(RG_TARGET_ODROID_GO)
 #include "targets/odroid-go/config.h"
 #elif defined(RG_TARGET_MRGC_G32)

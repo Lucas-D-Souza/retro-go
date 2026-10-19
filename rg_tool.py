@@ -47,26 +47,32 @@ IDF_PATH = os.getenv("IDF_PATH")
 if not IDF_PATH:
     exit("IDF_PATH is not defined. Are you running inside esp-idf environment?")
 
-if os.name == 'nt':
-    IDF_PY = os.path.join(IDF_PATH, "tools", "idf.py")
-    IDF_MONITOR_PY = os.path.join(IDF_PATH, "tools", "idf_monitor.py")
-    ESPTOOL_PY = os.path.join(IDF_PATH, "components", "esptool_py", "esptool", "esptool.py")
-    PARTTOOL_PY = os.path.join(IDF_PATH, "components", "partition_table", "parttool.py")
-    GEN_ESP32PART_PY = os.path.join(IDF_PATH, "components", "partition_table", "gen_esp32part.py")
-else:
-    IDF_PY = "idf.py"
-    IDF_MONITOR_PY = "idf_monitor.py"
-    ESPTOOL_PY = "esptool.py"
-    PARTTOOL_PY = "parttool.py"
-    GEN_ESP32PART_PY = "gen_esp32part.py"
+# Correção do Caminho Absoluto do ESP-IDF (Linux/Termux)
+IDF_PY = os.path.join(IDF_PATH, "tools", "idf.py")
+IDF_MONITOR_PY = os.path.join(IDF_PATH, "tools", "idf_monitor.py")
+ESPTOOL_PY = os.path.join(IDF_PATH, "components", "esptool_py", "esptool", "esptool.py")
+PARTTOOL_PY = os.path.join(IDF_PATH, "components", "partition_table", "parttool.py")
+GEN_ESP32PART_PY = os.path.join(IDF_PATH, "components", "partition_table", "gen_esp32part.py")
+
+# Se for Linux/Mac, o Python precisa usar 'python' antes do idf.py para não dar permissão negada
+if os.name != 'nt':
+    IDF_PY = sys.executable + " " + IDF_PY
+    IDF_MONITOR_PY = sys.executable + " " + IDF_MONITOR_PY
+    ESPTOOL_PY = sys.executable + " " + ESPTOOL_PY
+    PARTTOOL_PY = sys.executable + " " + PARTTOOL_PY
+    GEN_ESP32PART_PY = sys.executable + " " + GEN_ESP32PART_PY
 MKFW_PY = os.path.join("tools", "mkfw.py")
 
 
 def run(cmd, cwd=None, check=True):
     print(f"Running command: {' '.join(cmd)}")
-    if os.name == 'nt' and cmd[0].endswith(".py"):
-        return subprocess.run(["python", *cmd], shell=True, cwd=cwd, check=check)
-    return subprocess.run(cmd, shell=False, cwd=cwd, check=check)
+    # Transforma o array ['/path/python /path/idf.py', 'app'] em comando real
+    if not isinstance(cmd, str) and (cmd[0].startswith("python") or cmd[0].startswith(sys.executable)):
+        full_cmd = cmd[0].split() + cmd[1:]
+    else:
+        full_cmd = cmd
+        
+    return subprocess.run(full_cmd, shell=False, cwd=cwd, check=check)
 
 
 def build_image(apps, output_file, img_type="odroid", fatsize=0, target="unknown", version="unknown"):
